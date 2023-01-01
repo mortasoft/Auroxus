@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: adminlte-flask
+    build: .
+    ports:
+      - "5555:5000"
+    working_dir: /app
+    restart: unless-stopped
