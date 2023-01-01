@@ -1,14 +1,13 @@
 from flask import Flask, render_template
 from flask import redirect
-import os
-import json
+
 
 app = Flask(__name__)
-version=0.1
+version=0.001
 
 @app.route('/')
 def hello():
-    configs = {"version": version, "title":"Home"}
+    configs = {"version": version, "title":"Dashboard"}
     return render_template('index.html',configs=configs)
 
 
