@@ -36,7 +36,7 @@ class db:
         try:
             cur = self.conn.cursor()
             cur.execute(query,*params)
-
+            
             if type == "I":
                 self.conn.commit()
                 return cur.lastrowid
@@ -60,20 +60,25 @@ class auditron:
         self.db = db(user,password,host,port,database)
 
     def list_docker_containers(self):
-        columns,data = self.db.execute_query("SELECT * FROM containers order by container_name asc")
-        containers=[]
-        client = docker.from_env()
+        try:
 
-        for row in data:
-            container_name = row[0]
-            container_image = row[1]
-            container_desc = row[2]
-            try:
-                docker_container = client.containers.get(container_name)
-                print("The container exists")
-                containers.append([docker_container.id,container_name,docker_container.status,docker_container.image.tags[0],container_desc])
-            except Exception as e:
-                print(f"The container {container_name} do not exists")
-                containers.append([None,container_name,"Non existant",container_image,container_desc])
-            
-        return containers
+            columns,data = self.db.execute_query("SELECT * FROM containers order by container_name asc")
+            self.db.conn.cursor().close()
+            containers=[]
+            client = docker.from_env()
+
+            for row in data:
+                container_name = row[0]
+                container_image = row[1]
+                container_desc = row[2]
+                try:
+                    docker_container = client.containers.get(container_name)
+                    print("The container exists")
+                    containers.append([docker_container.id,container_name,docker_container.status,docker_container.image.tags[0],container_desc])
+                except Exception as e:
+                    print(f"The container {container_name} do not exists")
+                    containers.append([None,container_name,"Non existant",container_image,container_desc])
+                
+            return containers
+        except Exception as e:
+            print(e)
