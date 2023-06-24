@@ -31,6 +31,10 @@ class db:
         except AttributeError as e:
             print(f"Error connecting to MariaDB Platform: {e}")
             exit(1)
+        
+        except Exception as e:
+            print(f"Unknown Error: {e}")
+            exit(1)
 
     def execute_query(self, query,type="S",*params):
         try:

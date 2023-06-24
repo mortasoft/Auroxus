@@ -1,5 +1,4 @@
-from flask import Flask, render_template
-from flask import redirect
+from flask import Flask, redirect, url_for, request, render_template
 import os
 from dotenv import load_dotenv
 from backend.models import auditron
@@ -30,8 +29,15 @@ def config_docker():
     return render_template('config/docker.html',configs=configs,containers=containers)
 
 
+@app.route('/login',methods = ['GET'])
+def login():
+    name = request.args.get('name')
+    print(name)
+    return render_template('hola.html',name=name)
+
+
 if __name__ == "__main__":
     try:
-        app.run(debug=True,host="0.0.0.0",port="5000")
+        app.run(debug=True,host="0.0.0.0",port="7000")
     except Exception as e:
         print(e)
