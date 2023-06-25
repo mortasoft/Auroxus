@@ -1,20 +1,31 @@
 from flask import Flask, redirect, url_for, request, render_template
 import os
 from dotenv import load_dotenv
-from backend.models import auditron
+from backend.models import aur0xus,utils
 import os.path
+from celery import Celery
 
+# Initialize Flask
 app = Flask(__name__)
-version=0.001
+
+# Initialize version
+version=0.02
 
 # Load environmental variables from .env file
 load_dotenv()
-atron = auditron(user=os.getenv("db_user"),
+
+utils.print(f"Starting Aur0xus Dashboard v{version}") 
+
+
+
+
+ax = aur0xus(user=os.getenv("db_user"),
                     password=os.getenv("db_password"),
                     host=os.getenv("db_host"),
                     port=int(os.getenv("db_port")),
                     database=os.getenv("db_database")
                     )
+
 
 @app.route('/')
 def hello():
@@ -25,7 +36,7 @@ def hello():
 @app.route('/config/docker')
 def config_docker():
     configs = {"version": version, "title":"Configuration / Docker"}
-    containers = atron.list_docker_containers()
+    containers = ax.list_docker_containers()
     return render_template('config/docker.html',configs=configs,containers=containers)
 
 
@@ -34,6 +45,23 @@ def login():
     name = request.args.get('name')
     print(name)
     return render_template('hola.html',name=name)
+
+
+@app.route('/scanning', methods=['GET', 'POST'])
+def scanning():
+    configs = {"version": version, "title":"Scanning"}
+    if request.method == 'GET':
+        jobs = ax.get_all_scanning_jobs()
+        return render_template('scanning/scan.html',configs=configs,jobs=jobs)
+    elif request.method == 'POST':
+        scan_ip = request.form.get('scanIp')
+        scan_type = request.form.get('scanType')
+        if scan_type == "ping":
+            # Enqueue the Celery task
+            result = ax.ping_scan(scan_ip)
+            jobs = ax.get_all_scanning_jobs()
+            return render_template('scanning/scan.html',configs=configs,jobs=jobs)
+
 
 
 if __name__ == "__main__":

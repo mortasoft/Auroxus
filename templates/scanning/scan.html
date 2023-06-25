@@ -1,0 +1,99 @@
+{% extends "template.html" %}
+{% block titulo %}
+{{configs.title}}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h5 class="card-title">
+      In this module you can scan the network for devices and services.
+      <p>Choose the type of scan you want to perform:</p>
+    </h5>
+  </div>
+  <div class="card-body">
+
+    <!-- create a select with the types of scan  -->
+    <form method="POST" action="scanning">
+      <div class="form-group">
+        <label for="scanIp">Scan IP: (Examples: 192.168.1.1,192.168.1.1-255,192.168.1.1/24)</label>
+        <input type="text" class="form-control" id="scanIp" name="scanIp" placeholder="Enter IP to scan">
+        <label for="scanType">Scan type:</label>
+        <select class="form-control" id="scanType" name="scanType">
+          <option value="ping">Ping scan (-r -sP)</option>
+          <option value="quick">Quick Scan (-T4 -F)</option>
+          <option value="intense">Intense Scan (-T4 -A -v)</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Start scanning</button>
+    </form>
+
+
+
+    <p>Results:</p>
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th scope="col">Scan ID</th>
+          <th scope="col">Timestamp</th>
+          <th scope="col">Scan Type</th>
+          <th scope="col">Scan IP</th>
+          <th scope="col">Status</th>
+          <th scope="col">Results</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key in jobs %}
+        <tr>
+          <td>{{key[0]}}</td>
+          <td>{{key[1]}}</td>
+          <td>{{key[2]}}</td>
+          <td>{{key[3]}}</td>
+          <td>{{key[4]}}</td>
+          <td>{{key[4]}}</td> 
+          <!-- <td>{{key[4]}}</td> Modify that line to add a link with the value of the key -->
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <br><br>
+
+    <!-- Add a table with the columns Timestamp, Hostname, Ip_address, Mac_Adress, Vendor, State  -->
+    <p>Results:</p>
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th scope="col">Timestamp</th>
+          <th scope="col">Hostname</th>
+          <th scope="col">Ip_address</th>
+          <th scope="col">Mac_Adress</th>
+          <th scope="col">Vendor</th>
+          <th scope="col">State</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key in scan %}
+        <tr>
+          <td>{{key[0]}}</td>
+          <td>{{key[1]}}</td>
+          <td>{{key[2]}}</td>
+          <td>{{key[3]}}</td>
+          <td>{{key[4]}}</td>
+          <td>{{key[5]}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+  </div>
+</div>
+
+<script>
+var active = document.querySelectorAll(".active");
+active[0].classList.remove("active");
+var activePage = document.querySelectorAll(".{{configs.title}}");
+activePage[0].classList.add("active");
+
+</script>
+{% endblock %}

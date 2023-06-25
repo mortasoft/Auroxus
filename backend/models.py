@@ -1,5 +1,12 @@
 import mariadb
 import docker
+import datetime
+from colorama import Fore, Style
+from celery import Celery
+import nmap
+import datetime
+
+app = Celery('tasks', broker='redis://localhost:6379/0')
 
 class db:
     def __init__(self, user, password,host,port,database):
@@ -19,21 +26,21 @@ class db:
                             port=self.port,
                             database=self.database
                         )
-            print(f"You are connected to the database '{self.host}/{self.database}:{self.port}' ")
+            utils.print(f"Connected to the database '{self.host}/{self.database}:{self.port}' ")
         except mariadb.Error as e:
-            print(f"Error connecting to MariaDB Platform: {e}")
+            utils.print(f"Error connecting to MariaDB Platform: {e}")
             exit(1)
 
         except TypeError as e:
-            print(f"You have an error on the port. Should be an integer {e}")
+            utils.print(f"You have an error on the port. Should be an integer {e}")
             exit(1)
 
         except AttributeError as e:
-            print(f"Error connecting to MariaDB Platform: {e}")
+            utils.print(f"Error connecting to MariaDB Platform: {e}")
             exit(1)
         
         except Exception as e:
-            print(f"Unknown Error: {e}")
+            utils.print(f"Unknown Error: {e}")
             exit(1)
 
     def execute_query(self, query,type="S",*params):
@@ -59,9 +66,37 @@ class db:
         for i in data[1]:
             print(i)
 
-class auditron:
+class aur0xus:
     def __init__(self, user, password,host,port,database):
         self.db = db(user,password,host,port,database)
+
+    @app.task
+    def ping_scan(target):
+        arguments = '-R -sP'
+        nm = nmap.PortScanner()
+        nm.scan(target, arguments=arguments)
+        result = []
+        for host in nm.all_hosts():
+            hostname = nm[host]['hostnames'][0]['name']
+            ip_address = nm[host]['addresses']['ipv4']
+            try:
+                mac_address = nm[host]['addresses']['mac']
+                vendor = nm[host]['vendor'][mac_address]
+            except KeyError:
+                mac_address = 'NULL'
+                vendor = 'NULL'
+            state = nm[host].state()
+            result.append([datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), hostname,ip_address,mac_address,vendor,state ])
+        print(result)
+
+
+    def get_all_scanning_jobs(self):
+        try:
+            columns,data = self.db.execute_query("SELECT * FROM scanning_jobs")
+            self.db.conn.cursor().close()
+            return data
+        except Exception as e:
+            print(e)   
 
     def list_docker_containers(self):
         try:
@@ -86,3 +121,18 @@ class auditron:
             return containers
         except Exception as e:
             print(e)
+
+class net_scan:
+    def __init__(self):
+        pass
+
+class utils:
+    """docstring for utils."""
+    def print(text):
+        date = datetime.datetime.now().strftime("%x %X")
+        result = f"[{Fore.GREEN}{date}{Style.RESET_ALL}] {text}"
+        print(result)
+
+    def json_response(result, message, data):
+        return {"result": result, "message": message, "data": data}
+    
